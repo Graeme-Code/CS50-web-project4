@@ -5,7 +5,8 @@
 
 <h2>followering</h2>
 
-<h2>followers</h2>
+<h2>Followers</h2>
+<div id="profilefollowers"></div>
 
 <h2>Posts</h2>
 <div id="profileposts"></div>
@@ -13,6 +14,40 @@
 <h2>if logged in users does not equal profile, a follow/unfollow toggle button</h2> 
 
 <script type = "text/babel">
+
+class Followers extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            followers: 0,
+        }
+    }
+
+    componentDidMount() {
+        fetch('/profilefollowers/' + {{user.id}}, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(followers => {
+                //posts = Array.from(posts)
+                this.setState({
+                followers: followers,
+            });
+            console.log(followers)
+        })
+    }
+
+    render() {
+        return(
+            <div>
+                <h2>{this.state.followers}</h2>
+            </div>
+        )
+    }
+}
+
+
+
 
 class Posts extends React.Component {
     constructor(props) {
@@ -58,6 +93,7 @@ class Posts extends React.Component {
 }
 
 ReactDOM.render(<Posts />, document.getElementById('profileposts'))
+ReactDOM.render(<Followers />, document.getElementById('profilefollowers'))
 </script>
 
 {% endblock %}

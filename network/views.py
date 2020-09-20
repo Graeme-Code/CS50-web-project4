@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 from django.core import serializers
 
-from .models import User, Post, Like
+from .models import User, Post, Like, Followers
 
 
 def index(request):
@@ -109,3 +109,10 @@ def profileposts(request, user_id): #trigger this url with a seperate component.
         posts = posts.order_by("-created_at").all()
         print(posts)
         return JsonResponse([post.serialize() for post in posts], safe=False)
+
+def profilefollowers(request, user_id): #trigger this url with a seperate component. 
+    if request.method == "GET":
+        followers = Followers.objects.filter(user_id = user_id).count()
+        #print(posts)
+        print(followers)
+        return JsonResponse(followers, safe=False)

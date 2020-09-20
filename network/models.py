@@ -31,3 +31,15 @@ class Like(models.Model):
 
 #Check how to do a following, unfollowing model, confirmed a follower and following models are required. 
 
+class Followers(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="follower")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "follower": self.follower_id.username,
+            "user_id": self.user_id
+        }
+
+
