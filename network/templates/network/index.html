@@ -1,5 +1,127 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+<br>
+<h2>All Posts</h2>
+<div id ="post"></div>
+<div id ="posts"></div>
+
+<script type="text/babel">
+
+class Post extends React.Component {
+    constructor(props) { //becasue OOP
+          super(props);
+          this.state = { //this state has key and value, needs to be setup on creation.
+            post: '',
+            userId: {{user.id}}
+          };
+        }
+
+        handlePost = (event) => {
+                this.setState({
+                    post: event.target.value
+                })
+            }  
+
+            handleSubmit = (event) => {
+                fetch('/createpost', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        post: this.state.post,
+                        userId: this.state.userId
+                    })
+                })
+                .then(response => response.json())
+                            .then(result => {
+                                console.log(result);
+                            })
+                 
+                event.preventDefault()  
+                this.setState({
+                    post:'',
+                })     
+            }   
+
+    render() {
+            return (
+                <div className="border border-primary rounded p-5 m-5">
+                   <form onSubmit={this.handleSubmit} className="form-group">
+                        <div className="form-group">
+                            <label htmlFor="newpost">New Post:</label>
+                            <textarea className="form-control" rows="5" id="newpost"
+                                type="text"
+                                value={this.state.post}
+                                onChange={this.handlePost}
+                            />
+                        </div>
+                        <button type='submit' className="btn btn-primary">Post</button>
+                   </form>
+                </div>
+            )
+    }
+}
+
+class Posts extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            posts: [],
+        }
+    }
+
+    componentDidMount() {
+        fetch('/viewposts', {
+            method: 'GET',   
+        })
+        .then(response => response.json())
+        .then(posts => {
+                //posts = Array.from(posts)
+                this.setState({
+                posts: posts,
+            });
+            console.log(posts)
+        })
+    }
+
+
+
+    render() {
+        return (
+        <div>
+       
+            <div>
+                {this.state.posts.map((post) =>
+                        (  
+                            <div key={post.id} className="container-fluid">
+                                <div className="border border-primary rounded p-5 m-5">
+                                    <div>Post: {post.post} </div>
+                                    <div>By: <a href={"profile/"+post.user_id}> {post.user} </a></div>
+                                    <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
+                                </div>
+                            </div>
+                            ))}
+                
+            </div>
+            
+            
+            </div>
+        )
+
+    }
+}
+
+
+ReactDOM.render(<Post />, document.getElementById('post'))
+ReactDOM.render(<Posts />, document.getElementById('posts'))
+
+</script>
+
+
+{% endblock %}
+
+{% block script %}
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin=""></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin=""></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment.min.js" integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg==" crossorigin="anonymous"></script>
 {% endblock %}
