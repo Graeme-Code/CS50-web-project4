@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 from django.core import serializers
 
-from .models import User, Post, Like, Followers
+from .models import User, Post, Like, Followers, Follows
 
 
 def index(request):
@@ -100,7 +100,7 @@ def viewposts(request):
         return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def profile(request, user_id):  
-        return render(request, "network/profile.html")
+        return render(request, "network/profile.html", {'user_id': user_id})
 
 def profileposts(request, user_id): #trigger this url with a seperate component. 
     if request.method == "GET":
@@ -112,7 +112,39 @@ def profileposts(request, user_id): #trigger this url with a seperate component.
 
 def profilefollowers(request, user_id): #trigger this url with a seperate component. 
     if request.method == "GET":
-        followers = Followers.objects.filter(user_id = user_id).count()
-        #print(posts)
+        followercount = Followers.objects.filter(user_id = user_id).count()
+        followers = Followers.objects.filter(user_id = user_id).values('id')
         print(followers)
-        return JsonResponse(followers, safe=False)
+        return JsonResponse(followercount, safe=False)
+
+def profilefollows(request, user_id):
+    if request.method == "GET":
+        follows = Follows.objects.filter(user_id = user_id).count()
+        print(follows)
+        print(request.user)
+        return JsonResponse(follows, safe=False)
+
+@csrf_exempt
+def newfollow(request, user_id):
+    if request.method == "PUT":
+        follow = Follows(follows_id=user_id, user_id=request.user.id)
+        follow.save()
+        following = Followers(follower_id=request.user.id, user_id=user_id)
+        following.save()
+        return JsonResponse("new follow added", safe=False)
+
+@csrf_exempt
+def unfollow(request, user_id):
+    if request.method == "PUT":
+        print(request.user.id)
+        follow = Follows.objects.filter(user_id=request.user.id)
+        print(follow)
+        follow.delete()
+        followers = Followers.objects.filter(follower_id=request.user.id)
+        followers.delete()
+        return JsonResponse("unfollowed", safe=False)
+
+
+        
+
+

@@ -2,11 +2,17 @@
 
 {% block body %}
 <h2>Profile</h2>
+{% if user.id == user_id %}
+<div></div>
+{% else %}
+<span id="togglefollow"></span>
+{% endif %}
 
-<h2>followering</h2>
+<h2>Followering:
+    <span id="profilefollows"></span>
+</h2>
 
-<h2>Followers</h2>
-<div id="profilefollowers"></div>
+<h2>Followers: <span id="profilefollowers"></span></h2>
 
 <h2>Posts</h2>
 <div id="profileposts"></div>
@@ -14,6 +20,111 @@
 <h2>if logged in users does not equal profile, a follow/unfollow toggle button</h2> 
 
 <script type = "text/babel">
+
+class ToggleFollow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            follow: false,
+        }
+    }
+
+//Use the componet did mount as opportunity to grab if user is following profile or not.
+    componentDidMount() {
+       // fetch('/profilefollows/' + {{user_id}}, {
+       //     method: '',
+       // })
+      //  .then(response => response.json())
+      //  .then(follows => {
+      //          //posts = Array.from(posts)
+      //          this.setState({
+      //          follows: follows,
+      //      });
+      //      console.log(follows)
+     //   })
+    }
+
+newFollow = () => {
+    fetch('/newfollow/' + {{user_id}}, {
+        method: 'PUT',
+        body: JSON.stringify({
+            user_id: {{user_id}},
+            follow_id: {{user.id}}
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+    console.log('Success:', result);
+    })
+    .catch(error => {
+    console.error('Error:', error);
+    });
+    }
+
+unFollow = () => {
+    fetch('/unfollow/' + {{user_id}}, {
+        method: 'PUT',
+        body: JSON.stringify({
+            user_id: {{user_id}},
+            follow_id: {{user.id}}
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+    console.log('Success:', result);
+    })
+    .catch(error => {
+    console.error('Error:', error);
+    });
+    }
+ 
+render() {
+    return (
+    <div>
+    
+    <button onClick={this.newFollow}>Follow</button>
+    <button onClick={this.unFollow}>UnFollow</button>
+    
+    </div>
+    );
+}
+
+}
+
+
+
+
+
+class Follows extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            follows: 0,
+        }
+    }
+
+    componentDidMount() {
+        fetch('/profilefollows/' + {{user_id}}, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(follows => {
+                //posts = Array.from(posts)
+                this.setState({
+                follows: follows,
+            });
+            console.log(follows)
+        })
+    }
+
+    render() {
+        return(
+            <div>
+                <h2>{this.state.follows}</h2>
+            </div>
+        )
+    }
+}
 
 class Followers extends React.Component {
     constructor(props) {
@@ -24,7 +135,7 @@ class Followers extends React.Component {
     }
 
     componentDidMount() {
-        fetch('/profilefollowers/' + {{user.id}}, {
+        fetch('/profilefollowers/' + {{user_id}}, {
             method: 'GET',
         })
         .then(response => response.json())
@@ -58,7 +169,7 @@ class Posts extends React.Component {
     }
 
     componentDidMount() {
-        fetch('/profileposts/'+ {{user.id}}, {
+        fetch('/profileposts/'+ {{user_id}}, {
             method: 'GET',   
         })
         .then(response => response.json())
@@ -80,7 +191,7 @@ class Posts extends React.Component {
                             <div key={post.id} className="container-fluid">
                                 <div className="border border-primary rounded p-5 m-5">
                                     <div>Post: {post.post} </div>
-                                    <div>By: <a href={"profile/"+post.user_id}> {post.user} </a></div>
+                                    <div>By: {post.user} </div>
                                     <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
                                 </div>
                             </div>
@@ -94,6 +205,8 @@ class Posts extends React.Component {
 
 ReactDOM.render(<Posts />, document.getElementById('profileposts'))
 ReactDOM.render(<Followers />, document.getElementById('profilefollowers'))
+ReactDOM.render(<Follows />, document.getElementById('profilefollows'))
+ReactDOM.render(<ToggleFollow />, document.getElementById('togglefollow'))
 </script>
 
 {% endblock %}

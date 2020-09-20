@@ -42,4 +42,15 @@ class Followers(models.Model):
             "user_id": self.user_id
         }
 
+class Follows(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    follows = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="follow")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "follows": self.followers_id.username,
+            "user_id": self.user_id
+        }
+
 
