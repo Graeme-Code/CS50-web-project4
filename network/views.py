@@ -8,8 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import User, Post, Like, Followers, Follows
+from .models import User, Post, Like, Follower
 
 
 def index(request):
@@ -112,39 +113,73 @@ def profileposts(request, user_id): #trigger this url with a seperate component.
 
 def profilefollowers(request, user_id): #trigger this url with a seperate component. 
     if request.method == "GET":
-        followercount = Followers.objects.filter(user_id = user_id).count()
-        followers = Followers.objects.filter(user_id = user_id).values('id')
-        print(followers)
-        return JsonResponse(followercount, safe=False)
+        followercount = Follower.objects.filter(user_id = user_id).count()
+        print(followercount)
+        followingcount = Follower.objects.filter(follower_id = user_id).count()
+        print(followingcount)
+        logged_in_user_id = request.user.id
+        #logic to deterime if profile page is logged in users and if not, is logged in user a follower?
+        is_logged_in_users_profilepage = False
+        #is_profile_following_logged_in_user  = False
+        #Is logged in user a follower? Need a loop. 
+        try:
+            is_profile_following_logged_in_user = Follower.objects.get(follower_id = logged_in_user_id, user_id = user_id)     #filter(follower_id = user_id, ).values('follower')#some code to just get this userId
+            print(is_profile_following_logged_in_user)
+            is_profile_following_logged_in_user = True
+        except ObjectDoesNotExist:
+            is_profile_following_logged_in_user = False
 
-def profilefollows(request, user_id):
-    if request.method == "GET":
-        follows = Follows.objects.filter(user_id = user_id).count()
-        print(follows)
-        print(request.user)
-        return JsonResponse(follows, safe=False)
+        print("The logged in user ID is:", logged_in_user_id)
+        print("The profile page been visited's user ID is:", user_id)
+        print("is_profile_following_logged_in_user",is_profile_following_logged_in_user)
+
+        if logged_in_user_id == user_id:
+            is_logged_in_users_profilepage = True
+        else:
+            is_logged_in_users_profilepage = False
+
+
+    print(f"Is this the users profile page:", is_logged_in_users_profilepage)
+    print(f"Is the logged in user a follower:", is_profile_following_logged_in_user)
+
+    profile_data = {
+        'is_logged_in_users_profilepage' : is_logged_in_users_profilepage,
+        'is_profile_following_logged_in_user' : is_profile_following_logged_in_user,
+        'followingcount' : followingcount,
+        'followercount' : followercount
+    }
+        
+    return JsonResponse(profile_data, safe=False)
 
 @csrf_exempt
 def newfollow(request, user_id):
     if request.method == "PUT":
-        follow = Follows(follows_id=user_id, user_id=request.user.id)
-        follow.save()
-        following = Followers(follower_id=request.user.id, user_id=user_id)
-        following.save()
+        follower = Follower(follower_id=request.user.id, user_id=user_id)
+        follower.save()
         return JsonResponse("new follow added", safe=False)
 
 @csrf_exempt
 def unfollow(request, user_id):
     if request.method == "PUT":
-        print(request.user.id)
-        follow = Follows.objects.filter(user_id=request.user.id)
-        print(follow)
-        follow.delete()
-        followers = Followers.objects.filter(follower_id=request.user.id)
-        followers.delete()
+        removed_this_follower = Follower.objects.get(follower_id=request.user.id, user_id=user_id)
+        removed_this_follower.delete()
         return JsonResponse("unfollowed", safe=False)
 
+@login_required(login_url='/login/') 
+def following(request):
+    return render(request, "network/following.html")
 
-        
+def following_profile_posts(request):
+    if request.method == "GET":
+        logged_in_user_id = request.user.id
+        print(logged_in_user_id)
+        #get following profile's user ids
+        following_ids = Follower.objects.filter(follower_id=logged_in_user_id).values('user_id')
+        print("These are the userIds of the profiles the logged in user followers:", following_ids)
+        posts = Post.objects.filter(user_id_id__in=following_ids)
+        posts = posts.order_by("-created_at").all()
+        print(posts)
+        return JsonResponse([post.serialize() for post in posts], safe=False)
+
 
 

@@ -29,28 +29,24 @@ class Like(models.Model):
     def __str__(self):
         return f"Like ID:{self.id}. Like Status: {self.like} From User ID: {self.user}"
 
-#Check how to do a following, unfollowing model, confirmed a follower and following models are required. 
-
-class Followers(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+class Follower(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")
     follower = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="follower")
 
     def serialize(self):
         return {
             "id": self.id,
-            "follower": self.follower_id.username,
-            "user_id": self.user_id
+            "user": self.user_id.username,
+            "user_id": self.user_id,
+            "follower_id": self.follower,
+            "follower": self.follower.username
         }
+    
+    
+    
+    
+    
 
-class Follows(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    follows = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="follow")
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "follows": self.followers_id.username,
-            "user_id": self.user_id
-        }
-
+  
 

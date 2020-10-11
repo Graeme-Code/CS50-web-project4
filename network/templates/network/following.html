@@ -1,0 +1,70 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+<span id="following_profiles_posts"></span>
+
+<script type = "text/babel">
+
+class Posts extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            posts: [],
+        }
+    }
+
+    componentDidMount() {
+        fetch('/following_profiles_posts/', {
+            method: 'GET',   
+        })
+        .then(response => response.json())
+        .then(posts => {
+                //posts = Array.from(posts)
+                this.setState({
+                posts: posts,
+            });
+            console.log(posts)
+        })
+    }
+
+    //componenent didupdate to make dynamic rendering of new posts. 
+
+
+
+    render() {
+        return (
+        <div>
+       
+            <div>
+                {this.state.posts.map((post) =>
+                        (  
+                            <div key={post.id} className="container-fluid">
+                                <div className="border border-primary rounded p-5 m-5">
+                                    <div>Post: {post.post} </div>
+                                    <div>By: <a href={"profile/"+post.user_id}> {post.user} </a></div>
+                                    <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
+                                </div>
+                            </div>
+                            ))}
+                
+            </div>
+            </div>
+        )
+
+    }
+}
+
+ReactDOM.render(<Posts />, document.getElementById('following_profiles_posts'))
+
+</script>
+
+{% endblock %}
+
+
+{% block script %}
+<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin=""></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin=""></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment.min.js" integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg==" crossorigin="anonymous"></script>
+{% endblock %}

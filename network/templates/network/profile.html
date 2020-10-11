@@ -2,49 +2,16 @@
 
 {% block body %}
 <h2>Profile</h2>
-{% if user.id == user_id %}
-<div></div>
-{% else %}
-<span id="togglefollow"></span>
-{% endif %}
 
-<h2>Followering:
-    <span id="profilefollows"></span>
-</h2>
-
-<h2>Followers: <span id="profilefollowers"></span></h2>
+<span id="profilefollowers"></span>
 
 <h2>Posts</h2>
 <div id="profileposts"></div>
 
-<h2>if logged in users does not equal profile, a follow/unfollow toggle button</h2> 
-
 <script type = "text/babel">
 
-class ToggleFollow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            follow: false,
-        }
-    }
-
-//Use the componet did mount as opportunity to grab if user is following profile or not.
-    componentDidMount() {
-       // fetch('/profilefollows/' + {{user_id}}, {
-       //     method: '',
-       // })
-      //  .then(response => response.json())
-      //  .then(follows => {
-      //          //posts = Array.from(posts)
-      //          this.setState({
-      //          follows: follows,
-      //      });
-      //      console.log(follows)
-     //   })
-    }
-
-newFollow = () => {
+function Follow() {
+    const follow = () => {
     fetch('/newfollow/' + {{user_id}}, {
         method: 'PUT',
         body: JSON.stringify({
@@ -61,7 +28,13 @@ newFollow = () => {
     });
     }
 
-unFollow = () => {
+    return (
+    <button onClick={follow}>Follow</button>
+    )
+}
+
+function UnFollow() {
+    const unfollow = () => {
     fetch('/unfollow/' + {{user_id}}, {
         method: 'PUT',
         body: JSON.stringify({
@@ -77,60 +50,21 @@ unFollow = () => {
     console.error('Error:', error);
     });
     }
- 
-render() {
+    
     return (
-    <div>
-    
-    <button onClick={this.newFollow}>Follow</button>
-    <button onClick={this.unFollow}>UnFollow</button>
-    
-    </div>
-    );
-}
-
+    <button onClick={unfollow}>unFollow</button>
+    )
 }
 
 
-
-
-
-class Follows extends React.Component {
+class Profile extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            follows: 0,
-        }
-    }
-
-    componentDidMount() {
-        fetch('/profilefollows/' + {{user_id}}, {
-            method: 'GET',
-        })
-        .then(response => response.json())
-        .then(follows => {
-                //posts = Array.from(posts)
-                this.setState({
-                follows: follows,
-            });
-            console.log(follows)
-        })
-    }
-
-    render() {
-        return(
-            <div>
-                <h2>{this.state.follows}</h2>
-            </div>
-        )
-    }
-}
-
-class Followers extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            followers: 0,
+            followingcount: 0,
+            followercount: 0,
+            is_logged_in_users_profilepage: false,
+            is_profile_following_logged_in_user: false,
         }
     }
 
@@ -142,7 +76,10 @@ class Followers extends React.Component {
         .then(followers => {
                 //posts = Array.from(posts)
                 this.setState({
-                followers: followers,
+                    followingcount: followers.followingcount,
+                    followercount: followers.followercount,
+                    is_logged_in_users_profilepage: followers.is_logged_in_users_profilepage,
+                    is_profile_following_logged_in_user: followers.is_profile_following_logged_in_user,
             });
             console.log(followers)
         })
@@ -151,8 +88,25 @@ class Followers extends React.Component {
     render() {
         return(
             <div>
-                <h2>{this.state.followers}</h2>
-            </div>
+                <h2>Followers: {this.state.followercount}</h2>
+                <h2>Following: {this.state.followingcount}</h2>
+                <div>
+                   <div>
+                    {this.state.is_logged_in_users_profilepage
+                        ? <div></div>
+                        : <div>
+                            {this.state.is_profile_following_logged_in_user
+                                ? <UnFollow />
+                                : <Follow />
+                            }
+                         </div>
+                        }
+                        </div>
+                    </div>
+                
+                </div>
+            
+
         )
     }
 }
@@ -204,9 +158,7 @@ class Posts extends React.Component {
 }
 
 ReactDOM.render(<Posts />, document.getElementById('profileposts'))
-ReactDOM.render(<Followers />, document.getElementById('profilefollowers'))
-ReactDOM.render(<Follows />, document.getElementById('profilefollows'))
-ReactDOM.render(<ToggleFollow />, document.getElementById('togglefollow'))
+ReactDOM.render(<Profile />, document.getElementById('profilefollowers'))
 </script>
 
 {% endblock %}
