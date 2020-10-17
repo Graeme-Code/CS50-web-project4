@@ -102,7 +102,7 @@ const Posts =({posts}) => {
                             <ul key={post.id} className="container-fluid">
                                 <div className="border border-primary rounded p-5 m-5">
                                     <div>Post: {post.post} </div>
-                                    <div>By: <a href={"profile/"+post.user_id}> {post.user} </a></div>
+                                    <div>By: <a href={"/profile/"+post.user_id}> {post.user} </a></div>
                                     <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
                                 </div>
                             </ul>
