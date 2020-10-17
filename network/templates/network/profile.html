@@ -10,6 +10,8 @@
 
 <script type = "text/babel">
 
+const { useState, useEffect } = React
+
 function Follow() {
     const follow = () => {
     fetch('/newfollow/' + {{user_id}}, {
@@ -111,53 +113,84 @@ class Profile extends React.Component {
     }
 }
 
+function ViewPosts () {
+    const [posts, setPosts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [postsPerPage, setPostsPerPage] = useState(4);
+    const userId = {{user_id}};
+    const profilePostsUrl = `/profileposts/${userId}`;
+    console.log(profilePostsUrl)
 
-
-
-class Posts extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            posts: [],
+    useEffect( () => {
+        const fetchPosts = async(userId) => {
+            console.log(`/profileposts/${userId}`)
+            const res = await axios.get(`/profileposts/${userId}`);
+            setPosts(res.data)
         }
-    }
+        fetchPosts(userId);
+        }, []);
 
-    componentDidMount() {
-        fetch('/profileposts/'+ {{user_id}}, {
-            method: 'GET',   
-        })
-        .then(response => response.json())
-        .then(posts => {
-                //posts = Array.from(posts)
-                this.setState({
-                posts: posts,
-            });
-            console.log(posts)
-        })
-    }
+    console.log(posts)
+    //get current post
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+    //change page
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    render() {
-        return (
+    return(
         <div>
-            <div>
-                {this.state.posts.map((post) =>
-                        (  
-                            <div key={post.id} className="container-fluid">
-                                <div className="border border-primary rounded p-5 m-5">
-                                    <div>Post: {post.post} </div>
-                                    <div>By: {post.user} </div>
-                                    <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
-                                </div>
-                            </div>
-                            ))}
-                
-            </div>
-            </div>
-        )
-    }
+        <Posts posts={currentPosts} />
+        <Pagination postsPerPage={postsPerPage} totalPosts={posts.length} paginate={paginate} />
+        </div>
+    )
+
 }
 
-ReactDOM.render(<Posts />, document.getElementById('profileposts'))
+const Posts =({posts}) => {
+    return (
+    <div>
+                {posts.map((post) =>
+                        (  
+                            <ul key={post.id} className="container-fluid">
+                                <div className="border border-primary rounded p-5 m-5">
+                                    <div>Post: {post.post} </div>
+                                    <div>By: <a href={"profile/"+post.user_id}> {post.user} </a></div>
+                                    <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
+                                </div>
+                            </ul>
+                         ))}
+    </div>
+    )
+}
+
+const Pagination = ({postsPerPage, totalPosts, paginate}) => {
+    const pageNumbers = [];
+
+    for(let i = 1; i <= Math.ceil(totalPosts/postsPerPage); i++){
+        pageNumbers.push(i);
+    }
+    
+    return(
+        <nav>
+            <ul className = "pagination">
+            {pageNumbers.map(number => (
+                <li key={number} className="page-item">
+                <a onClick={() => paginate(number)} className="page-link">
+                {number}
+                </a>
+                </li>
+            ))}
+            </ul>
+        </nav>
+    );
+};
+
+
+
+
+
+ReactDOM.render(<ViewPosts />, document.getElementById('profileposts'))
 ReactDOM.render(<Profile />, document.getElementById('profilefollowers'))
 </script>
 
@@ -165,8 +198,10 @@ ReactDOM.render(<Profile />, document.getElementById('profilefollowers'))
 
 
 {% block script %}
-<script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin=""></script>
-<script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin=""></script>
+<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment.min.js" integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg==" crossorigin="anonymous"></script>
 {% endblock %}
