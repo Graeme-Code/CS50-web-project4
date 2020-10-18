@@ -22,12 +22,18 @@ class Post(models.Model):
         }
 
 class Like(models.Model):
-    like = models.BooleanField(default=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f"Like ID:{self.id}. Like Status: {self.like} From User ID: {self.user}"
+        return f"Like ID:{self.id} From User ID: {self.user}"
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user": self.user,
+            "post": self.post
+        }
 
 class Follower(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")

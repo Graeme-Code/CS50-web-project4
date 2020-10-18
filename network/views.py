@@ -181,5 +181,70 @@ def following_profile_posts(request):
         print(posts)
         return JsonResponse([post.serialize() for post in posts], safe=False)
 
+@csrf_exempt
+@login_required(login_url='/login/') 
+def edit_post(request, user_id):
+    if not request.user.id == user_id:
+        return JsonResponse("Cannot edit other users posts", safe=False)
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        postId = data.get('post_id')
+        postbody = data.get('post')
+        print(data)
+        post = Post.objects.get(pk=postId)
+        print(post)
+        post.post = postbody
+        post.save()
+        return JsonResponse("edit successful", safe=False)
+
+@csrf_exempt
+@login_required(login_url='/login/')
+def like(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    logged_in_user = User.objects.get(pk=request.user.id)
+    if request.method == "GET":
+        print(request)
+        try:
+            likes = Like.objects.filter(post=post).count()
+        except:
+            likes = 0
+        try: 
+            user_like = Like.objects.get(user=logged_in_user, post=post)
+            user_like = True
+            print(user_like)
+        except:
+            user_like = False
+        like_data = {
+                "likes" : likes,
+                "user_like" : user_like
+            }
+        print(like_data)
+        return JsonResponse(like_data, safe=False)
+    
+    if request.method == "POST":
+        like = Like(post=post, user=logged_in_user)
+        like.save()
+        return JsonResponse("posted", safe=False)
+    #One more for puts to remove like. 
+    if request.method == "PUT": 
+        try:
+            like = Like.objects.get(post=post, user=logged_in_user)
+            like.delete()
+        except:
+            print("No like to delete")
+        return JsonResponse("like deleted", safe=False)
+        
+
+
+
+
+
+
+
+
+
+    
+
+
 
 

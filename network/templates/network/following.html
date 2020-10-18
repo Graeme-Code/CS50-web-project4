@@ -48,6 +48,9 @@ const Posts =({posts}) => {
                                     <div>Post: {post.post} </div>
                                     <div>By: <a href={"/profile/"+post.user_id}> {post.user} </a></div>
                                     <div>When: {moment(post.created_at).format('YYYY/MM/DD HH:mm:ss')} </div>
+                                    <Like postId={post.id}/>
+    
+                                    
                                 </div>
                             </ul>
                          ))}
@@ -76,6 +79,54 @@ const Pagination = ({postsPerPage, totalPosts, paginate}) => {
         </nav>
     );
 };
+
+const Like = ({postId}) => {
+const [likes, setLikes] = useState(0)
+const [loggedInUserLikes, setLoggedInUserLikes] = useState(false)
+
+//use effect to get latest like count.
+useEffect( () => {
+        const fetchLikes = async(postId) => {
+            console.log(`/like/${postId}`)
+            const res = await axios.get(`/like/${postId}`);
+            setLikes(res.data.likes);
+            console.log(res.data.likes)
+            setLoggedInUserLikes(res.data.user_like)
+            console.log(res.data.user_like)
+        }
+        fetchLikes(postId);
+        }, []);
+
+const handleClick =() => {
+    if (loggedInUserLikes == true) {
+        setLikes(likes - 1);
+        const deleteLikes = async(postId) => {
+            console.log(`/like/${postId}`)
+            const res = await axios.put(`/like/${postId}`);
+        }
+        deleteLikes(postId);
+        console.log(loggedInUserLikes)
+        setLoggedInUserLikes(!loggedInUserLikes);
+        console.log(loggedInUserLikes)
+        } else {
+            setLikes(likes + 1);
+            const postLikes = async(postId) => {
+            console.log(`/like/${postId}`)
+            const res = await axios.post(`/like/${postId}`);
+        }
+        postLikes(postId);
+        setLoggedInUserLikes(!loggedInUserLikes);
+        console.log(loggedInUserLikes)
+        }
+    } 
+
+return (
+    <div>   
+    <button onClick={()=>handleClick()}>Likes:{likes}</button>
+    </div>
+
+ );
+}
 
 
 ReactDOM.render(<ViewPosts />, document.getElementById('following_profiles_posts'))
